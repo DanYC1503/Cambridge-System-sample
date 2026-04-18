@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+credentials.json
+
+# React / Expo
+node_modules/
+.expo/
+.idea/
+.vscode/
+dist/
+build/
