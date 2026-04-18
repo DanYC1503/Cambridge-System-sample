@@ -4,7 +4,7 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
-from Backend.app.config import GOOGLE_CREDENTIALS_PATH, GOOGLE_SHEET_ID
+from app.config import GOOGLE_CREDENTIALS_PATH, GOOGLE_SHEET_ID
 
 
 def download_excel():

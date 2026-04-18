@@ -1,9 +1,9 @@
 
 from datetime import datetime
 
-from Backend.app.utils.date_utils import fix_speaking_hours_column, get_current_month_name, split_speaking_dates
-from Backend.app.repositories.excel_repository import get_excel_file
-from Backend.app.utils.name_utils import extract_teacher_name
+from app.utils.date_utils import fix_speaking_hours_column, get_current_month_name, split_speaking_dates
+from app.repositories.excel_repository import get_excel_file
+from app.utils.name_utils import extract_teacher_name
 import pandas as pd
 
 TEACHER_ALIASES = {

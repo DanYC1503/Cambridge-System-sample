@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from Backend.app.controller.download_controller import download_sheet
-from Backend.app.model.form_model import FormInput
-from Backend.app.services.form_service import get_form_via_link, submit_form_service
+from app.controller.download_controller import download_sheet
+from app.model.form_model import FormInput
+from app.services.form_service import get_form_via_link, submit_form_service
 app = FastAPI()
 
 

@@ -1,5 +1,5 @@
-from Backend.app.repositories.excel_repository import get_excel_file
-from Backend.app.utils.date_utils import get_current_month_name
+from app.repositories.excel_repository import get_excel_file
+from app.utils.date_utils import get_current_month_name
 from datetime import datetime
 
 def get_current_month_sheets(excel_sheet):

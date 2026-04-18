@@ -1,10 +1,10 @@
 
-from Backend.app.repositories.excel_repository import get_excel_file
+from app.repositories.excel_repository import get_excel_file
 
 
 import pandas as pd
 
-from Backend.app.utils.date_utils import fix_speaking_hours_column
+from app.utils.date_utils import fix_speaking_hours_column
 
 def load_clean_sheet(sheet_name: str, excel):
     raw_df = pd.read_excel(excel, sheet_name=sheet_name, header=None)
