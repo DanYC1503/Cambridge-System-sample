@@ -1,6 +1,8 @@
+import { API_URL } from "../config";
+
 export const submitForm = async (url, payload) => {
   const response = await fetch(
-    `http://192.168.1.34:8000/form/submit?form_url=${encodeURIComponent(url)}`,
+    `${API_URL}/form/submit?form_url=${encodeURIComponent(url)}`,
     {
       method: "POST",
       headers: {

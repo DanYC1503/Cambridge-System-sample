@@ -1,6 +1,8 @@
+import { API_URL } from "../config";
+
 export const fetchSchema = async (url) => {
   const response = await fetch(
-    `http://192.168.1.34:8000/retrieve-form-schema?form_url=${encodeURIComponent(url)}`
+    `${API_URL}/retrieve-form-schema?form_url=${encodeURIComponent(url)}`
   );
 
   if (!response.ok) {

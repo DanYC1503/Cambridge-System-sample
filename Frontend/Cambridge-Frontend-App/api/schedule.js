@@ -1,8 +1,9 @@
+import { API_URL } from "../config";
 
 export const fetchSchedule = async (teacherName) => {
   try {
     const response = await fetch(
-      `http://192.168.1.34:8000/download-speaking-sheet?course_teacher_name=${teacherName}`
+      `${API_URL}/download-speaking-sheet?course_teacher_name=${teacherName}`
     );
 
     console.log("STATUS:", response.status);
