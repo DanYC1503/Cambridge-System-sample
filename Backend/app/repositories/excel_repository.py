@@ -12,6 +12,9 @@ from app.config import GOOGLE_CREDENTIALS, GOOGLE_SHEET_ID
 def download_excel():
     creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
 
+    if not creds_json:
+        raise ValueError("Missing GOOGLE_CREDENTIALS_JSON in environment")
+    
     creds = Credentials.from_service_account_info(
         json.loads(creds_json),
         scopes=["https://www.googleapis.com/auth/drive.readonly"]
