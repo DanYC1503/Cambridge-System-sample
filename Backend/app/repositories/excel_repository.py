@@ -1,4 +1,6 @@
 import io
+import json
+import os
 import pandas as pd
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -8,8 +10,10 @@ from app.config import GOOGLE_CREDENTIALS, GOOGLE_SHEET_ID
 
 
 def download_excel():
-    creds = Credentials.from_service_account_file(
-        GOOGLE_CREDENTIALS,
+    creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+
+    creds = Credentials.from_service_account_info(
+        json.loads(creds_json),
         scopes=["https://www.googleapis.com/auth/drive.readonly"]
     )
 
