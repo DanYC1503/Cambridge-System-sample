@@ -4,12 +4,12 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
-from app.config import GOOGLE_CREDENTIALS_PATH, GOOGLE_SHEET_ID
+from app.config import GOOGLE_CREDENTIALS, GOOGLE_SHEET_ID
 
 
 def download_excel():
     creds = Credentials.from_service_account_file(
-        GOOGLE_CREDENTIALS_PATH,
+        GOOGLE_CREDENTIALS,
         scopes=["https://www.googleapis.com/auth/drive.readonly"]
     )
 

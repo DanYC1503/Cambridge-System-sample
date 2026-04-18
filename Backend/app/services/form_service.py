@@ -1,9 +1,5 @@
-
 from app.repositories.form_fields import extract_schema, submit_to_google
 from app.utils.form_utils import is_google_form, normalize_form_url
-
-
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScgYPW4xBUstY3z76HT9Y63QHEYezjs3TNN0yHfkhUzt4LLTA/viewform"
 
 def get_form_via_link(form_url: str):
     if not is_google_form(form_url):
