@@ -7,6 +7,9 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -15,7 +18,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { submitForm } from "../api/submit_schema";
 
 export default function FormScreen() {
-  const { url, name } = useLocalSearchParams();
+  const { url, name,  units } = useLocalSearchParams();
   const router = useRouter();
 
   const [schema, setSchema] = useState<any>(null);
@@ -30,6 +33,16 @@ export default function FormScreen() {
 
   // 📝 Fields
   const [fieldValues, setFieldValues] = useState<{ [key: string]: string }>({});
+
+  type Mode = "none" | "report" | "plan";
+
+  const [mode, setMode] = useState<Mode>("none");
+
+  const parsedUnits: string[] = units ? JSON.parse(units as string) : [];
+
+  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+
+  
 
   useEffect(() => {
     const loadSchema = async () => {
@@ -47,6 +60,43 @@ export default function FormScreen() {
 
     loadSchema();
   }, []);
+  
+  useEffect(() => {
+    if (!schema) return;
+
+    if (mode === "report") {
+      const allAbsent: { [key: string]: string } = {};
+      Object.keys(schema.students).forEach((student) => {
+        allAbsent[student] = "INASISTENCIA";
+      });
+
+      setStudentValues(allAbsent);
+
+      const reportFields: { [key: string]: string } = {};
+      Object.keys(schema.fields).forEach((field) => {
+        reportFields[field] = "REPORTE";
+      });
+
+      setFieldValues(reportFields);
+    }
+
+    if (mode === "plan") {
+      const allAbsent: { [key: string]: string } = {};
+      Object.keys(schema.students).forEach((student) => {
+        allAbsent[student] = "INASISTENCIA";
+      });
+
+      setStudentValues(allAbsent);
+
+      const planFields: { [key: string]: string } = {};
+      Object.keys(schema.fields).forEach((field) => {
+        planFields[field] = "PLANIFICACION";
+      });
+
+      setFieldValues(planFields);
+    }
+
+  }, [mode, schema]);
 
   const handleStudentSelect = (student: string, value: string) => {
     setStudentValues((prev) => ({
@@ -75,9 +125,62 @@ export default function FormScreen() {
         return;
       }
 
+      const normalize = (text: string) =>
+        text
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toUpperCase();
+
+      const requiredFields = Object.keys(schema.fields).filter((field) => {
+        const normalized = normalize(field);
+
+        const isOptional =
+          normalized.includes("DEBER") ||
+          normalized.includes("OBSERV");
+
+        return !isOptional;
+      });
+
+      const missingFields = requiredFields.filter(
+        (field) => !fieldValues[field]?.trim()
+      );
+
+      if (missingFields.length > 0) {
+        Alert.alert("Error", "Fill all required fields");
+        return;
+      }
+
+      // Clean fields before sending
+      const cleanedFields: { [key: string]: string } = {};
+
+      Object.keys(fieldValues).forEach((field) => {
+        let value = fieldValues[field] || "";
+
+        // detect "page" fields (flexible)
+       const normalize = (text: string) =>
+          text
+            .normalize("NFD") // splits letters + accents
+            .replace(/[\u0300-\u036f]/g, "") // removes accents
+            .toUpperCase();
+
+        const normalizedField = normalize(field);
+
+        const isPageField =
+          normalizedField.includes("PAG") ||
+          normalizedField.includes("PAGE") ||
+          normalizedField.includes("PAGINA");
+
+        if (isPageField) {
+          const numbersOnly = value.replace(/\D/g, "");
+          value = numbersOnly ? `Pag.${numbersOnly}` : "";
+        }
+
+        cleanedFields[field] = value;
+      });
+
       const payload = {
         fecha: date.toISOString().split("T")[0],
-        fields: fieldValues,
+        fields: cleanedFields,
         students: studentValues,
       };
 
@@ -90,95 +193,243 @@ export default function FormScreen() {
       Alert.alert("Error", "Submission failed");
     }
   };
+  const normalize = (text: string) =>
+    text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
+
+  const isFieldRequired = (field: string) => {
+    const normalized = normalize(field);
+
+    const isOptional =
+      normalized.includes("DEBER") ||
+      normalized.includes("OBSERV");
+
+    return !isOptional;
+  };
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       style={{ flex: 1 }}
-      contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={80} // adjust if needed
     >
-      {/* TITLE */}
-      <Text style={{ fontSize: 20, fontWeight: "bold" }}>{name}</Text>
-
-      {/* ACTION BUTTONS */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginTop: 10,
-        }}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <Button title="Back" onPress={() => router.back()} />
+        {/* TITLE */}
+        <Text style={{ fontSize: 20, fontWeight: "bold" }}>{name}</Text>
 
-        <Button title="Submit" onPress={handleSubmit} />
-      </View>
-
-      {/* 📅 DATE */}
-      <Text style={{ marginTop: 20, fontWeight: "bold" }}>Fecha</Text>
-      <TouchableOpacity onPress={() => setShowPicker(true)}>
-        <Text style={{ padding: 10, borderWidth: 1, marginTop: 5 }}>
-          {date.toDateString()}
-        </Text>
-      </TouchableOpacity>
-
-      {showPicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowPicker(false);
-            if (selectedDate) setDate(selectedDate);
+        {/* ACTION BUTTONS */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 10,
           }}
-        />
-      )}
+        >
+          {/* LEFT SIDE: MODES */}
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            
+            {/* REPORT */}
+            <Pressable
+              onPress={() => setMode(mode === "report" ? "none" : "report")}
+              style={({ pressed }) => ({
+                backgroundColor: mode === "report" ? "#3b82f6" : "#ccc",
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                borderRadius: 20,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                Reporte
+              </Text>
+            </Pressable>
 
-      {/* 🧑 STUDENTS */}
-      <Text style={{ marginTop: 20, fontWeight: "bold" }}>
-        Lista Estudiantes
-      </Text>
+            {/* PLANIFICACION */}
+            <Pressable
+              onPress={() => setMode(mode === "plan" ? "none" : "plan")}
+              style={({ pressed }) => ({
+                backgroundColor: mode === "plan" ? "#10b981" : "#ccc",
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                borderRadius: 20,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                Planificación
+              </Text>
+            </Pressable>
 
-      {Object.keys(schema.students).map((student) => (
-        <View key={student} style={{ marginTop: 15 }}>
-          <Text>{student}</Text>
-
-          <View style={{ flexDirection: "row", marginTop: 5 }}>
-            {["ASISTENCIA", "INASISTENCIA", "ATRASO"].map((option) => (
-              <TouchableOpacity
-                key={option}
-                onPress={() => handleStudentSelect(student, option)}
-                style={{
-                  padding: 8,
-                  borderWidth: 1,
-                  marginRight: 5,
-                  backgroundColor:
-                    studentValues[student] === option ? "#ccc" : "#fff",
-                }}
-              >
-                <Text>{option}</Text>
-              </TouchableOpacity>
-            ))}
           </View>
+
+          {/* RIGHT SIDE: SUBMIT */}
+          <Pressable
+            onPress={handleSubmit}
+            style={({ pressed }) => ({
+              backgroundColor: "#22c55e",
+              paddingVertical: 10,
+              paddingHorizontal: 18,
+              borderRadius: 12,
+              transform: [{ scale: pressed ? 0.96 : 1 }],
+              opacity: pressed ? 0.9 : 1,
+            })}
+          >
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 15 }}>
+              Submit
+            </Text>
+          </Pressable>
         </View>
-      ))}
 
-      {/* 📝 FIELDS */}
-      <Text style={{ marginTop: 20, fontWeight: "bold" }}>Campos</Text>
+        {/* 📅 DATE */}
+        <Text style={{ marginTop: 20, fontWeight: "bold" }}>Fecha</Text>
+        <TouchableOpacity onPress={() => setShowPicker(true)}>
+          <Text style={{ padding: 10, borderWidth: 1, marginTop: 5 }}>
+            {date.toDateString()}
+          </Text>
+        </TouchableOpacity>
 
-      {Object.keys(schema.fields).map((field) => (
-        <View key={field} style={{ marginTop: 10 }}>
-          <Text>{field}</Text>
-          <TextInput
-            placeholder={`Enter ${field}`}
-            value={fieldValues[field] || ""}
-            onChangeText={(text) => handleFieldChange(field, text)}
-            style={{
-              borderWidth: 1,
-              padding: 8,
-              marginTop: 5,
+        {showPicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowPicker(false);
+              if (selectedDate) setDate(selectedDate);
             }}
           />
-        </View>
-      ))}
-    </ScrollView>
+        )}
+
+        {/* 🧑 STUDENTS */}
+        <Text style={{ marginTop: 20, fontWeight: "bold" }}>
+          Lista Estudiantes
+        </Text>
+
+        {Object.keys(schema.students).map((student) => (
+          <View key={student} style={{ marginTop: 15 }}>
+            <Text>{student}</Text>
+
+            <View style={{ flexDirection: "row", marginTop: 5 }}>
+              {["ASISTENCIA", "INASISTENCIA", "ATRASO"].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  onPress={() => handleStudentSelect(student, option)}
+                  style={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    marginRight: 8,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor:
+                      studentValues[student] === option ? "#3b82f6" : "#ccc",
+                    backgroundColor:
+                      studentValues[student] === option ? "#dbeafe" : "#fff",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        studentValues[student] === option ? "#1d4ed8" : "#333",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ))}
+
+        {/* 📝 FIELDS */}
+        <Text style={{ marginTop: 20, fontWeight: "bold" }}>Campos</Text>
+
+        {Object.keys(schema.fields).map((field) => {
+          const isUnidad = field.toUpperCase().includes("UNIDAD");
+        if (isUnidad && parsedUnits.length > 0) {
+          return (
+            <View key={field} style={{ marginTop: 10 }}>
+              <Text>
+                {field}
+                {isFieldRequired(field) && (
+                  <Text style={{ color: "red" }}> *</Text>
+                )}
+              </Text>
+
+              {/* TEXT INPUT (always editable) */}
+              <TextInput
+                value={fieldValues[field] || ""}
+                onChangeText={(text) => handleFieldChange(field, text)}
+                placeholder="Type or select Unidad"
+                style={{
+                  borderWidth: 1,
+                  padding: 10,
+                  marginTop: 5,
+                  borderRadius: 8,
+                  backgroundColor: "#fff",
+                }}
+                onFocus={() => setShowUnitDropdown(true)}
+              />
+
+              {/* DROPDOWN SUGGESTIONS */}
+              {showUnitDropdown && (
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderTopWidth: 0,
+                    borderRadius: 8,
+                    backgroundColor: "#f9fafb",
+                  }}
+                >
+                  {parsedUnits.map((unit, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => {
+                        handleFieldChange(field, unit);
+                        setShowUnitDropdown(false);
+                      }}
+                      style={{
+                        padding: 10,
+                        borderBottomWidth: index !== parsedUnits.length - 1 ? 1 : 0,
+                      }}
+                    >
+                      <Text>{unit}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          );
+        }
+          // default fields
+          return (
+            <View key={field} style={{ marginTop: 10 }}>
+              <Text>
+                {field}
+                {isFieldRequired(field) && (
+                  <Text style={{ color: "red" }}> *</Text>
+                )}
+              </Text>
+              <TextInput
+                placeholder={`Enter ${field}`}
+                value={fieldValues[field] || ""}
+                onChangeText={(text) => handleFieldChange(field, text)}
+                style={{
+                  borderWidth: 1,
+                  padding: 8,
+                  marginTop: 5,
+                }}
+              />
+            </View>
+          );
+        })}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
