@@ -125,12 +125,6 @@ export default function FormScreen() {
         return;
       }
 
-      const normalize = (text: string) =>
-        text
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toUpperCase();
-
       const requiredFields = Object.keys(schema.fields).filter((field) => {
         const normalized = normalize(field);
 
@@ -150,32 +144,12 @@ export default function FormScreen() {
         return;
       }
 
-      // Clean fields before sending
+      // Clean fields (no forced formatting anymore)
       const cleanedFields: { [key: string]: string } = {};
 
       Object.keys(fieldValues).forEach((field) => {
-        let value = fieldValues[field] || "";
-
-        // detect "page" fields (flexible)
-       const normalize = (text: string) =>
-          text
-            .normalize("NFD") // splits letters + accents
-            .replace(/[\u0300-\u036f]/g, "") // removes accents
-            .toUpperCase();
-
-        const normalizedField = normalize(field);
-
-        const isPageField =
-          normalizedField.includes("PAG") ||
-          normalizedField.includes("PAGE") ||
-          normalizedField.includes("PAGINA");
-
-        if (isPageField) {
-          const numbersOnly = value.replace(/\D/g, "");
-          value = numbersOnly ? `Pag.${numbersOnly}` : "";
-        }
-
-        cleanedFields[field] = value;
+        const value = fieldValues[field] || "";
+        cleanedFields[field] = value.trim();
       });
 
       const payload = {

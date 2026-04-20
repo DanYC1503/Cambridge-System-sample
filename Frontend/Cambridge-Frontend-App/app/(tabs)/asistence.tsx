@@ -12,11 +12,15 @@ import {
 import { loadCourses, saveCourse } from "../../storage/form_Storage";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Swipeable } from "react-native-gesture-handler";
 
 const FormConfig = () => {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [courses, setCourses] = useState([]);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+
   type Unit = {
     id: string;
     value: string;
@@ -43,15 +47,43 @@ const [units, setUnits] = useState<Unit[]>([]);
       return;
     }
 
-    await saveCourse({
-      id: Date.now().toString(),
-      name,
-      url,
-      units: units.map(u => u.value),
-    });
-    setUnits([]); 
+    const all = await loadCourses();
+
+    let updated;
+
+    if (editingId) {
+      // UPDATE
+      updated = all.map((c: Course) =>
+        c.id === editingId
+          ? {
+              ...c,
+              name,
+              url,
+              units: units.map((u) => u.value),
+            }
+          : c
+      );
+    } else {
+      // CREATE
+      updated = [
+        ...all,
+        {
+          id: Date.now().toString(),
+          name,
+          url,
+          units: units.map((u) => u.value),
+        },
+      ];
+    }
+
+    await saveCourses(updated);
+
+    // reset
+    setEditingId(null);
     setName("");
     setUrl("");
+    setUnits([]);
+
     loadAll();
   };
   const addUnit = () => {
@@ -85,7 +117,49 @@ const [units, setUnits] = useState<Unit[]>([]);
     setCourses(updated);
     Alert.alert("Eliminado", `${courseToDelete.name} fue borrado`);
   };
+  const handleEdit = (course: Course) => {
+    setEditingId(course.id);
+    setName(course.name);
+    setUrl(course.url);
 
+    const mappedUnits = (course.units || []).map((u, i) => ({
+      id: Date.now().toString() + i,
+      value: u,
+    }));
+
+    setUnits(mappedUnits);
+  };
+  const renderRightActions = (item: Course) => {
+    return (
+      <View style={{ flexDirection: "row" }}>
+        {/* EDIT */}
+        <TouchableOpacity
+          onPress={() => handleEdit(item)}
+          style={{
+            backgroundColor: "#3b82f6",
+            justifyContent: "center",
+            alignItems: "center",
+            width: 80,
+          }}
+        >
+          <Text style={{ color: "white" }}>Edit</Text>
+        </TouchableOpacity>
+
+        {/* DELETE */}
+        <TouchableOpacity
+          onPress={() => deleteCourse(item)}
+          style={{
+            backgroundColor: "#ef4444",
+            justifyContent: "center",
+            alignItems: "center",
+            width: 80,
+          }}
+        >
+          <Text style={{ color: "white" }}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -215,6 +289,7 @@ const [units, setUnits] = useState<Unit[]>([]);
         }
 
         renderItem={({ item }: { item: Course }) => (
+        <Swipeable renderRightActions={() => renderRightActions(item)}>
           <TouchableOpacity
             onPress={() =>
               router.push({
@@ -222,35 +297,22 @@ const [units, setUnits] = useState<Unit[]>([]);
                 params: {
                   url: item.url,
                   name: item.name,
-                  units: JSON.stringify(item.units || []), // 🔥 important
+                  units: JSON.stringify(item.units || []),
                 },
               })
             }
-            onLongPress={() => {
-              Alert.alert(
-                "Eliminar curso",
-                `¿Seguro que quieres borrar "${item.name}"?`,
-                [
-                  { text: "Cancelar", style: "cancel" },
-                  {
-                    text: "Borrar",
-                    style: "destructive",
-                    onPress: () => deleteCourse(item),
-                  },
-                ]
-              );
-            }}
-            delayLongPress={400}
             style={{
               padding: 10,
               borderWidth: 1,
               marginTop: 10,
               borderRadius: 5,
+              backgroundColor: "#fff",
             }}
           >
             <Text>{item.name}</Text>
           </TouchableOpacity>
-        )}
+        </Swipeable>
+      )}
       />
     </KeyboardAvoidingView>
   );
