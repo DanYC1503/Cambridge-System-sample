@@ -48,7 +48,7 @@ def extract_schema(form_url):
 def submit_to_google(form_url: str, payload: dict):
     post_url = form_url.replace("viewform", "formResponse")
 
-    payload["pageHistory"] = "0,1,2"
+    payload["pageHistory"] = "0,1,2,3"
     payload["fvv"] = "1"
 
     response = requests.post(post_url, data=payload)
