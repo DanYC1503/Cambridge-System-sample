@@ -4,9 +4,9 @@ from app.utils.form_utils import is_google_form, normalize_form_url
 def get_form_via_link(form_url: str):
     if not is_google_form(form_url):
         raise ValueError("Invalid Google Form URL")
-
-    normalized_url = normalize_form_url(form_url)
-    return extract_schema(normalized_url)
+    form_url = normalize_form_url(form_url)
+    
+    return extract_schema(form_url)
     
 def build_payload(input_json, schema):
     data = {}
