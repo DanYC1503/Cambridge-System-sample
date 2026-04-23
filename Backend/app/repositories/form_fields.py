@@ -4,7 +4,8 @@ import json
 
 
 def extract_schema(form_url):
-    html = requests.get(form_url).text
+    response = requests.get(form_url)
+    html = response.text
     match = re.search(r'FB_PUBLIC_LOAD_DATA_ = (.*?);', html)
 
     data = json.loads(match.group(1))
