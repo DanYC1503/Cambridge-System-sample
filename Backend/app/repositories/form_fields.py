@@ -13,7 +13,8 @@ def extract_schema(form_url):
     schema = {
         "date": None,
         "students": {},
-        "fields": {}
+        "fields": {},
+        "pageHistory": extract_page_history(data)
     }
 
     for q in questions:
@@ -44,11 +45,35 @@ def extract_schema(form_url):
 
     return schema
 
+def extract_page_history(data):
+    questions = data[1][1]
+
+    pages = []
+    current_page = 0
+
+    for q in questions:
+        try:
+            q_type = q[3]
+
+            # Section break (new page)
+            if q_type == 8:  # SECTION
+                current_page += 1
+
+            pages.append(current_page)
+
+        except:
+            continue
+
+    # unique ordered pages → "0,1,2"
+    unique_pages = sorted(set(pages))
+    return ",".join(map(str, unique_pages))
 
 def submit_to_google(form_url: str, payload: dict):
     post_url = form_url.replace("viewform", "formResponse")
 
-    payload["pageHistory"] = "0,1,2,3"
+    schema = extract_schema(form_url)
+
+    payload["pageHistory"] = schema["pageHistory"]
     payload["fvv"] = "1"
 
     response = requests.post(post_url, data=payload)

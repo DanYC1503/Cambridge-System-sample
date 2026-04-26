@@ -24,14 +24,14 @@ export default function FormScreen() {
   const [schema, setSchema] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // 📅 Date
+  //  Date
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
 
-  // 🧑 Students
+  // Students
   const [studentValues, setStudentValues] = useState<{ [key: string]: string }>({});
 
-  // 📝 Fields
+  // Fields
   const [fieldValues, setFieldValues] = useState<{ [key: string]: string }>({});
 
   type Mode = "none" | "report" | "plan";
@@ -117,6 +117,12 @@ export default function FormScreen() {
   }
   const handleSubmit = async () => {
     try {
+      console.log("Submitting to:", url);
+      
+      if (!url) {
+        Alert.alert("Error", "Missing form URL");
+        return;
+      }
       const totalStudents = Object.keys(schema.students).length;
       const filledStudents = Object.keys(studentValues).length;
 
@@ -157,7 +163,7 @@ export default function FormScreen() {
         fields: cleanedFields,
         students: studentValues,
       };
-
+      console.log("PAYLOAD:", JSON.stringify(payload, null, 2));
       await submitForm(url as string, payload);
 
       Alert.alert("Success", "Form submitted!");
@@ -260,7 +266,7 @@ export default function FormScreen() {
           </Pressable>
         </View>
 
-        {/* 📅 DATE */}
+        {/* DATE */}
         <Text style={{ marginTop: 20, fontWeight: "bold" }}>Fecha</Text>
         <TouchableOpacity onPress={() => setShowPicker(true)}>
           <Text style={{ padding: 10, borderWidth: 1, marginTop: 5 }}>
@@ -280,7 +286,7 @@ export default function FormScreen() {
           />
         )}
 
-        {/* 🧑 STUDENTS */}
+        {/* STUDENTS */}
         <Text style={{ marginTop: 20, fontWeight: "bold" }}>
           Lista Estudiantes
         </Text>
@@ -321,7 +327,7 @@ export default function FormScreen() {
           </View>
         ))}
 
-        {/* 📝 FIELDS */}
+        {/* FIELDS */}
         <Text style={{ marginTop: 20, fontWeight: "bold" }}>Campos</Text>
 
         {Object.keys(schema.fields).map((field) => {

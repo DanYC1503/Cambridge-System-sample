@@ -9,18 +9,21 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { loadCourses, saveCourse } from "../../storage/form_Storage";
+import { loadCourses } from "../../storage/form_Storage";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Swipeable } from "react-native-gesture-handler";
+import { ScrollView, Swipeable } from "react-native-gesture-handler";
+import { BookId, DEFAULT_BOOKS } from "@/storage/books_repo";
 
 const FormConfig = () => {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [courses, setCourses] = useState([]);
-
+  const [bookId, setBookId] = useState<BookId | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-
+  const [showBooks, setShowBooks] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [bookSearch, setBookSearch] = useState("");
   type Unit = {
     id: string;
     value: string;
@@ -39,7 +42,30 @@ const [units, setUnits] = useState<Unit[]>([]);
     id: string;
     name: string;
     url: string;
+    bookId?: BookId;
     units: string[];
+  };
+
+  const filteredBooks = Object.entries(DEFAULT_BOOKS).filter(
+  ([_, book]) =>
+    book.name.toLowerCase().includes(bookSearch.toLowerCase())
+);
+  const handleSelectBook = (id: BookId | null) => {
+    setBookId(id);
+
+    if (!id) {
+      setUnits([]); // or keep existing if you prefer
+      return;
+    }
+
+    const book = DEFAULT_BOOKS[id];
+
+    setUnits(
+      book.units.map((u, i) => ({
+        id: `${Date.now()}-${i}`,
+        value: u,
+      }))
+    );
   };
   const handleSave = async () => {
     if (!name.trim() || !url.trim()) {
@@ -49,32 +75,37 @@ const [units, setUnits] = useState<Unit[]>([]);
 
     const all = await loadCourses();
 
+    const cleanedUnits = units
+    .map((u) => u.value.trim())
+    .filter((u) => u.length > 0);
+
     let updated;
 
     if (editingId) {
-      // UPDATE
       updated = all.map((c: Course) =>
         c.id === editingId
           ? {
               ...c,
               name,
               url,
-              units: units.map((u) => u.value),
+              bookId: bookId || undefined,
+              units: cleanedUnits,
             }
           : c
       );
     } else {
-      // CREATE
       updated = [
         ...all,
         {
           id: Date.now().toString(),
           name,
           url,
-          units: units.map((u) => u.value),
+          bookId: bookId || undefined,
+          units: cleanedUnits,
         },
       ];
     }
+
 
     await saveCourses(updated);
 
@@ -83,6 +114,7 @@ const [units, setUnits] = useState<Unit[]>([]);
     setName("");
     setUrl("");
     setUnits([]);
+    setBookId(null);
 
     loadAll();
   };
@@ -121,7 +153,7 @@ const [units, setUnits] = useState<Unit[]>([]);
     setEditingId(course.id);
     setName(course.name);
     setUrl(course.url);
-
+    setBookId(course.bookId || null);
     const mappedUnits = (course.units || []).map((u, i) => ({
       id: Date.now().toString() + i,
       value: u,
@@ -140,26 +172,26 @@ const [units, setUnits] = useState<Unit[]>([]);
             justifyContent: "center",
             alignItems: "center",
             width: 80,
+            borderRadius: 5,
           }}
         >
           <Text style={{ color: "white" }}>Edit</Text>
         </TouchableOpacity>
 
-        {/* DELETE */}
-        <TouchableOpacity
-          onPress={() => deleteCourse(item)}
-          style={{
-            backgroundColor: "#ef4444",
-            justifyContent: "center",
-            alignItems: "center",
-            width: 80,
-          }}
-        >
-          <Text style={{ color: "white" }}>Delete</Text>
-        </TouchableOpacity>
+        
       </View>
     );
   };
+  const openNewCourseForm = () => {
+    setShowForm(true);
+
+    setEditingId(null);
+    setName("");
+    setUrl("");
+    setBookId(null);
+    setUnits([]);
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -172,7 +204,30 @@ const [units, setUnits] = useState<Unit[]>([]);
         contentContainerStyle={{ padding: 20 }}
         
         ListHeaderComponent={
+      <>
+        {/* TITLE */}
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
+          Añadir Curso
+        </Text>
+
+        {/* COLLAPSED */}
+        {!showForm ? (
+          <TouchableOpacity
+            onPress={openNewCourseForm}
+            style={{
+              backgroundColor: "#3b82f6",
+              padding: 12,
+              borderRadius: 10,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "bold" }}>
+              + Nuevo Curso
+            </Text>
+          </TouchableOpacity>
+        ) : (
           <>
+            {/* FORM */}
             <Text>Course Name:</Text>
             <TextInput
               value={name}
@@ -188,6 +243,96 @@ const [units, setUnits] = useState<Unit[]>([]);
               placeholder="Paste Google Form link"
               style={{ borderWidth: 1, marginVertical: 5, padding: 10 }}
             />
+
+            {/* BOOK */}
+            <Text style={{ marginTop: 20, fontWeight: "bold" }}>
+              Book (optional)
+            </Text>
+
+            {/* Dropdown trigger */}
+            <TouchableOpacity
+              onPress={() => setShowBooks((prev) => !prev)}
+              style={{
+                marginTop: 8,
+                borderWidth: 1,
+                borderRadius: 8,
+                padding: 12,
+                backgroundColor: "#fff",
+              }}
+            >
+              <Text>
+                {bookId ? DEFAULT_BOOKS[bookId].name : "Seleccionar libro"} ▼
+              </Text>
+            </TouchableOpacity>
+
+            {/* Dropdown list */}
+            {showBooks && (
+              <View
+                style={{
+                  marginTop: 5,
+                  borderWidth: 1,
+                  borderRadius: 8,
+                  backgroundColor: "#fff",
+                  maxHeight: 250,
+                }}
+                onStartShouldSetResponder={() => true}
+              >
+                {/*  SEARCH INPUT */}
+                <TextInput
+                  value={bookSearch}
+                  onChangeText={setBookSearch}
+                  placeholder="Buscar libro..."
+                  style={{
+                    padding: 10,
+                    borderBottomWidth: 1,
+                    borderColor: "#ddd",
+                  }}
+                />
+
+                {/* SCROLLABLE LIST */}
+                <ScrollView
+                  style={{ height: 200 }}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  {filteredBooks.map(([key, book]) => (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => {
+                        handleSelectBook(key as BookId);
+                        setShowBooks(false);
+                        setBookSearch("");
+                      }}
+                      style={{
+                        padding: 12,
+                        borderBottomWidth: 0.5,
+                        borderColor: "#eee",
+                      }}
+                    >
+                      <Text>{book.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+
+                  {bookId && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        handleSelectBook(null);
+                        setShowBooks(false);
+                        setBookSearch("");
+                      }}
+                      style={{
+                        padding: 12,
+                        backgroundColor: "#f87171",
+                      }}
+                    >
+                      <Text style={{ color: "white", textAlign: "center" }}>
+                        Remove Book
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </ScrollView>
+              </View>
+            )}
+            {/* UNITS */}
             <Text style={{ marginTop: 20, fontWeight: "bold" }}>
               Units (optional)
             </Text>
@@ -198,24 +343,20 @@ const [units, setUnits] = useState<Unit[]>([]);
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginTop: 10,
+                  marginTop: 8,
                   borderWidth: 1,
-                  borderRadius: 10,
-                  padding: 10,
+                  borderRadius: 8,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
                 }}
               >
-                {/* TEXT INPUT */}
                 <TextInput
                   value={item.value}
                   onChangeText={(text) => updateUnit(item.id, text)}
-                  style={{
-                    flex: 1,
-                    fontWeight: "bold",
-                  }}
+                  style={{ flex: 1 }}
                   placeholder={`UNIDAD ${index + 1}`}
                 />
 
-                {/* DELETE BUTTON */}
                 <TouchableOpacity
                   onPress={() =>
                     Alert.alert(
@@ -232,16 +373,16 @@ const [units, setUnits] = useState<Unit[]>([]);
                     )
                   }
                   style={{
-                    marginLeft: 10,
+                    marginLeft: 8,
                     backgroundColor: "#ef4444",
-                    width: 28,
-                    height: 28,
-                    borderRadius: 14,
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+                  <Text style={{ color: "white", fontWeight: "bold" }}>
                     ×
                   </Text>
                 </TouchableOpacity>
@@ -262,32 +403,38 @@ const [units, setUnits] = useState<Unit[]>([]);
                 + Add Unit
               </Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               onPress={handleSave}
-              activeOpacity={0.7}
               style={{
                 marginTop: 10,
-                backgroundColor: "#22c1c3", // cyan-blue
+                backgroundColor: "#22c1c3",
                 paddingVertical: 14,
                 borderRadius: 12,
                 alignItems: "center",
-                shadowColor: "#000",
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 3, // Android shadow
               }}
             >
-              <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+              <Text style={{ color: "white", fontWeight: "bold" }}>
                 Save Course
               </Text>
             </TouchableOpacity>
 
-            <Text style={{ marginTop: 20, fontWeight: "bold" }}>
-              Saved Courses:
-            </Text>
+            {/* CANCEL */}
+            <TouchableOpacity
+              onPress={() => setShowForm(false)}
+              style={{ marginTop: 10, alignItems: "center" }}
+            >
+              <Text style={{ color: "#6b7280" }}>Cancelar</Text>
+            </TouchableOpacity>
           </>
-        }
+        )}
 
+        {/* ALWAYS SHOW */}
+        <Text style={{ marginTop: 20, fontWeight: "bold" }}>
+          Saved Courses:
+        </Text>
+      </>
+        }
         renderItem={({ item }: { item: Course }) => (
         <Swipeable renderRightActions={() => renderRightActions(item)}>
           <TouchableOpacity
@@ -301,6 +448,21 @@ const [units, setUnits] = useState<Unit[]>([]);
                 },
               })
             }
+            onLongPress={() =>
+              Alert.alert(
+                "Eliminar curso",
+                `¿Borrar "${item.name}"?`,
+                [
+                  { text: "Cancelar", style: "cancel" },
+                  {
+                    text: "Borrar",
+                    style: "destructive",
+                    onPress: () => deleteCourse(item),
+                  },
+                ]
+              )
+            }
+            delayLongPress={300} // optional, makes it feel faster
             style={{
               padding: 10,
               borderWidth: 1,
