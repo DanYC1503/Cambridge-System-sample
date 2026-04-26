@@ -43,6 +43,7 @@ const [units, setUnits] = useState<Unit[]>([]);
     name: string;
     url: string;
     bookId?: BookId;
+    bookName?: string;
     units: string[];
   };
 
@@ -67,6 +68,9 @@ const [units, setUnits] = useState<Unit[]>([]);
       }))
     );
   };
+
+  
+
   const handleSave = async () => {
     if (!name.trim() || !url.trim()) {
       Alert.alert("Error", "Enter both name and URL");
@@ -150,6 +154,7 @@ const [units, setUnits] = useState<Unit[]>([]);
     Alert.alert("Eliminado", `${courseToDelete.name} fue borrado`);
   };
   const handleEdit = (course: Course) => {
+    setShowForm(true);
     setEditingId(course.id);
     setName(course.name);
     setUrl(course.url);
@@ -163,22 +168,22 @@ const [units, setUnits] = useState<Unit[]>([]);
   };
   const renderRightActions = (item: Course) => {
     return (
-      <View style={{ flexDirection: "row" }}>
-        {/* EDIT */}
+      <View style={{ flexDirection: "row", alignItems: "stretch" }}>
         <TouchableOpacity
           onPress={() => handleEdit(item)}
           style={{
+            width: 70,
             backgroundColor: "#3b82f6",
             justifyContent: "center",
             alignItems: "center",
-            width: 80,
             borderRadius: 5,
+            marginTop:10,
+            marginLeft:10,
+            alignSelf: "stretch",
           }}
         >
           <Text style={{ color: "white" }}>Edit</Text>
         </TouchableOpacity>
-
-        
       </View>
     );
   };
@@ -422,9 +427,18 @@ const [units, setUnits] = useState<Unit[]>([]);
             {/* CANCEL */}
             <TouchableOpacity
               onPress={() => setShowForm(false)}
-              style={{ marginTop: 10, alignItems: "center" }}
+              style={{
+                marginTop: 10,
+                backgroundColor: "#ef4444", // 👈 red
+                paddingVertical: 10,
+                paddingHorizontal: 20,
+                borderRadius: 8, // 👈 rounded corners
+                alignItems: "center",
+              }}
             >
-              <Text style={{ color: "#6b7280" }}>Cancelar</Text>
+              <Text style={{ color: "white", fontWeight: "600" }}>
+                Cancelar
+              </Text>
             </TouchableOpacity>
           </>
         )}
@@ -445,6 +459,7 @@ const [units, setUnits] = useState<Unit[]>([]);
                   url: item.url,
                   name: item.name,
                   units: JSON.stringify(item.units || []),
+                  bookId: item.bookId,
                 },
               })
             }

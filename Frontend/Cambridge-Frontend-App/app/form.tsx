@@ -16,9 +16,15 @@ import { useEffect, useState } from "react";
 import { fetchSchema } from "../api/schema";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { submitForm } from "../api/submit_schema";
+import { BookId, DEFAULT_BOOKS } from "@/storage/books_repo";
 
 export default function FormScreen() {
-  const { url, name,  units } = useLocalSearchParams();
+  const { url, name,  units, bookId } = useLocalSearchParams();
+  
+  
+  const book = bookId ? DEFAULT_BOOKS[bookId as BookId] : null;
+  const bookName = book?.name;
+
   const router = useRouter();
 
   const [schema, setSchema] = useState<any>(null);
@@ -41,9 +47,21 @@ export default function FormScreen() {
   const parsedUnits: string[] = units ? JSON.parse(units as string) : [];
 
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
-
-  
-
+  const isBookField = (field: string) => {
+    const f = field.toLowerCase();
+    return (
+      f.includes("pagina") ||
+      f.includes("página") ||
+      f.includes("libro") ||
+      f.includes("texto")
+    );
+  };
+  const getSuggestedValue = (field: string) => {
+    if (isBookField(field) && bookName) {
+      return `${bookName}; `; // 👈 add semicolon + space
+    }
+    return "";
+  };
   useEffect(() => {
     const loadSchema = async () => {
       try {
@@ -190,12 +208,12 @@ export default function FormScreen() {
   };
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1 , backgroundColor: "#ffffff"}}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={80} // adjust if needed
     >
       <ScrollView
-        style={{ flex: 1 }}
+        style={{ flex: 1 , backgroundColor: "#f2fafd"}}
         contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
         keyboardShouldPersistTaps="handled"
       >
@@ -347,6 +365,7 @@ export default function FormScreen() {
                 value={fieldValues[field] || ""}
                 onChangeText={(text) => handleFieldChange(field, text)}
                 placeholder="Type or select Unidad"
+                placeholderTextColor="#9ca3af"
                 style={{
                   borderWidth: 1,
                   padding: 10,
@@ -398,12 +417,19 @@ export default function FormScreen() {
               </Text>
               <TextInput
                 placeholder={`Enter ${field}`}
-                value={fieldValues[field] || ""}
+                placeholderTextColor="#7c7c7e"
+                value={
+                  fieldValues[field] ??
+                  getSuggestedValue(field) 
+                }
                 onChangeText={(text) => handleFieldChange(field, text)}
                 style={{
                   borderWidth: 1,
                   padding: 8,
                   marginTop: 5,
+                  color: "#111827",
+                  backgroundColor: "#fff",
+                  borderRadius: 6,
                 }}
               />
             </View>
