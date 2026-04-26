@@ -203,6 +203,60 @@ export const DEFAULT_BOOKS = {
       "Unit 7: Achievements",
       "Unit 8: Graduation Day"
     ]
+  },
+  Netzwerk_neu_A1: {
+    id: "18",
+    name: "Netzwerk neu A1",
+    units: [
+      "Unidad 1: Guten Tag!",
+      "Unidad 2: Freunde, Kollegen und ich",
+      "Unidad 3: In Hamburg",
+      "Unidad 4: Guten Appetit!",
+      "Unidad 5: Alltag und Familie",
+      "Unidad 6: Zeit mit Freunden",
+      "Unidad 7: Arbeitsalltag",
+      "Unidad 8: Fit und gesund",
+      "Unidad 9: Meine Wohnung",
+      "Unidad 10: Studium und Beruf",
+      "Unidad 11: Die Jacke gefällt mir",
+      "Unidad 12: Ab in den Urlaub"
+    ]
+  },
+  Netzwerk_neu_A2: {
+    id: "18",
+    name: "Netzwerk neu A2",
+    units: [
+      "Unidad 1: Und was machtst du?",
+      "Unidad 2: Nach der Schulzeit",
+      "Unidad 3: Immer online?",
+      "Unidad 4: Große und kleine Gefühle",
+      "Unidad 5: Leben in der Stadt",
+      "Unidad 6: Arbeitswelten",
+      "Unidad 7: Ganz schön mobil",
+      "Unidad 8: Gelernt ist gelernt",
+      "Unidad 9: Sportlich, sportlich",
+      "Unidad 10: Zusammen leben",
+      "Unidad 11: Wie die Zeit vergeht",
+      "Unidad 12: Gute Unterhaltung"
+    ]
+  },
+  Netzwerk_neu_B1: {
+    id: "18",
+    name: "Netzwerk neu B1",
+    units: [
+      "Unidad 1: Gute Reise!",
+      "Unidad 2: Das ist ja praktisch!",
+      "Unidad 3: Veränderungen",
+      "Unidad 4: Arbeitswelt",
+      "Unidad 5: Umweltfreundlich",
+      "Unidad 6: Blick nach vorn",
+      "Unidad 7: Zwischenmenschliches",
+      "Unidad 8: Rund um Körper und Geist",
+      "Unidad 9: Kunststücke",
+      "Unidad 10: Miteinander",
+      "Unidad 11: Stadt, Land, Fluss",
+      "Unidad 12: Geld regiert die Welt?"
+    ]
   }
 } as const;
 export type BookId = keyof typeof DEFAULT_BOOKS;
