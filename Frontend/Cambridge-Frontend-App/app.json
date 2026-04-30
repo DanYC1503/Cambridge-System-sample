@@ -4,7 +4,7 @@
     "slug": "Cambridge-Frontend-App",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo_cam.jpg",
     "scheme": "cambridgefrontendapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,9 +15,9 @@
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "foregroundImage": "./assets/images/logo_cam.jpg",
         "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "monochromeImage": "./assets/images/logo_cam_monochrome.png"
         
       },
       "edgeToEdgeEnabled": true,

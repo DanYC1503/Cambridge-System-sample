@@ -58,9 +58,20 @@ export default function FormScreen() {
   };
   const getSuggestedValue = (field: string) => {
     if (isBookField(field) && bookName) {
-      return `${bookName}; `; // 👈 add semicolon + space
+      return `${bookName}; `;
     }
     return "";
+  };
+  const buildInitialFields = (defaultValue: string) => {
+    const result: { [key: string]: string } = {};
+
+    Object.keys(schema.fields).forEach((field) => {
+      const suggested = getSuggestedValue(field);
+
+      result[field] = suggested || defaultValue;
+    });
+
+    return result;
   };
   useEffect(() => {
     const loadSchema = async () => {
@@ -82,39 +93,42 @@ export default function FormScreen() {
   useEffect(() => {
     if (!schema) return;
 
-    if (mode === "report") {
+    const isModeActive = mode === "report" || mode === "plan";
+
+    // Students
+    if (isModeActive) {
       const allAbsent: { [key: string]: string } = {};
       Object.keys(schema.students).forEach((student) => {
         allAbsent[student] = "INASISTENCIA";
       });
-
       setStudentValues(allAbsent);
-
-      const reportFields: { [key: string]: string } = {};
-      Object.keys(schema.fields).forEach((field) => {
-        reportFields[field] = "REPORTE";
-      });
-
-      setFieldValues(reportFields);
+    } else {
+      // clean state
+      setStudentValues({});
     }
 
-    if (mode === "plan") {
-      const allAbsent: { [key: string]: string } = {};
-      Object.keys(schema.students).forEach((student) => {
-        allAbsent[student] = "INASISTENCIA";
-      });
+    // Fields (same logic as before)
+    const defaultValue =
+      mode === "report"
+        ? "REPORTE"
+        : mode === "plan"
+        ? "PLANIFICACION"
+        : "";
 
-      setStudentValues(allAbsent);
+    const initialFields: { [key: string]: string } = {};
 
-      const planFields: { [key: string]: string } = {};
-      Object.keys(schema.fields).forEach((field) => {
-        planFields[field] = "PLANIFICACION";
-      });
+    Object.keys(schema.fields).forEach((field) => {
+      if (isModeActive) {
+        initialFields[field] = defaultValue;
+      } else {
+        const suggested = getSuggestedValue(field);
+        initialFields[field] = suggested || "";
+      }
+    });
 
-      setFieldValues(planFields);
-    }
+    setFieldValues(initialFields);
 
-  }, [mode, schema]);
+  }, [mode, schema, bookName]);
 
   const handleStudentSelect = (student: string, value: string) => {
     setStudentValues((prev) => ({
@@ -133,6 +147,12 @@ export default function FormScreen() {
   if (loading || !schema) {
     return <ActivityIndicator style={{ marginTop: 50 }} />;
   }
+  const formatLocalDate = (date: { getFullYear: () => any; getMonth: () => number; getDate: () => any; }) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
   const handleSubmit = async () => {
     try {
       console.log("Submitting to:", url);
@@ -174,10 +194,10 @@ export default function FormScreen() {
       Object.keys(fieldValues).forEach((field) => {
         const value = fieldValues[field] || "";
         cleanedFields[field] = value.trim();
-      });
-
+      }); 
+      
       const payload = {
-        fecha: date.toISOString().split("T")[0],
+        fecha: formatLocalDate(date),
         fields: cleanedFields,
         students: studentValues,
       };
@@ -419,8 +439,7 @@ export default function FormScreen() {
                 placeholder={`Enter ${field}`}
                 placeholderTextColor="#7c7c7e"
                 value={
-                  fieldValues[field] ??
-                  getSuggestedValue(field) 
+                  fieldValues[field] || ""
                 }
                 onChangeText={(text) => handleFieldChange(field, text)}
                 style={{
