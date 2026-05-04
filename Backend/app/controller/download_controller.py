@@ -10,18 +10,22 @@ def download_sheet(course_teacher_name: str = None):
     try:
         excel = get_excel_file()
 
+        # STEP 1: Month filter
         speaking_teacher_sheets = get_current_month_sheets(excel)
+
+        # STEP 2: Extract teachers
         speaking_teachers = get_teachers_from_month(speaking_teacher_sheets)
 
         all_data = []
 
+        # STEP 3: Iterate teachers
         for teacher in speaking_teachers:
             sheets = find_teacher_sheets(teacher, excel)
 
             for sheet in sheets:
                 df = load_clean_sheet(sheet, excel)
 
-                # filter if needed
+                # STEP 4: Filter by requested teacher
                 if course_teacher_name:
                     temp_df = get_teacher_schedule(course_teacher_name, df)
                 else:
@@ -39,6 +43,7 @@ def download_sheet(course_teacher_name: str = None):
 
                 all_data.append(temp_df)
 
+        # STEP 5: Final aggregation
         if not all_data:
             return {"df": []}
 

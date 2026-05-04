@@ -6,17 +6,20 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
-from app.config import GOOGLE_CREDENTIALS, GOOGLE_SHEET_ID
+from app.config import GOOGLE_SHEET_ID, load_credentials
 
 
 def download_excel():
-    creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    creds_json = load_credentials()
 
     if not creds_json:
         raise ValueError("Missing GOOGLE_CREDENTIALS_JSON in environment")
     
+    if isinstance(creds_json, str):
+        creds_json = json.loads(creds_json)
+
     creds = Credentials.from_service_account_info(
-        json.loads(creds_json),
+        creds_json,
         scopes=["https://www.googleapis.com/auth/drive.readonly"]
     )
 

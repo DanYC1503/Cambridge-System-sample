@@ -1,3 +1,6 @@
+import re
+
+
 IGNORE_WORDS = [
     "SPEAKING",
     "HOURS",
@@ -30,6 +33,7 @@ def extract_teacher_name(sheet_name: str):
     filtered = [
         word for word in words
         if word not in IGNORE_WORDS
+        and not re.search(r"\d", word)  # remove anything with numbers
     ]
 
     name = " ".join(filtered).strip()

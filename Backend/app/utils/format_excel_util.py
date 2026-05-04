@@ -113,20 +113,33 @@ def detect_sections(raw_df, header_row):
 def add_start_end_time(df):
     import pandas as pd
 
+    def parse_time_part(part):
+        part = str(part).strip()
+
+        # 🔥 normalize dot format (8.30 → 8:30)
+        part = part.replace(".", ":")
+
+        # if only hour like "8"
+        if ":" not in part:
+            return int(part), 0
+
+        h, m = part.split(":")
+        return int(h.strip()), int(m.strip())
+
     def parse_row(row):
         val = row["SPEAKING HOURS"]
-        period = row["PERIOD"]
+        period = str(row["PERIOD"]).upper()
 
-        if pd.isna(val) or "-" not in val:
+        if pd.isna(val) or "-" not in str(val):
             return pd.Series([None, None])
 
         try:
-            start_str, end_str = val.split("-")
+            start_str, end_str = str(val).split("-")
 
-            h1, m1 = map(int, start_str.split(":"))
-            h2, m2 = map(int, end_str.split(":"))
+            h1, m1 = parse_time_part(start_str)
+            h2, m2 = parse_time_part(end_str)
 
-            # apply PM logic
+            # PM logic
             if period == "PM":
                 if h1 < 12:
                     h1 += 12
@@ -138,7 +151,8 @@ def add_start_end_time(df):
 
             return pd.Series([start, end])
 
-        except:
+        except Exception as e:
+            print("❌ TIME PARSE ERROR:", val, "|", e)
             return pd.Series([None, None])
 
     df[["START TIME", "END TIME"]] = df.apply(parse_row, axis=1)
