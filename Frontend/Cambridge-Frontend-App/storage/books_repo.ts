@@ -204,6 +204,7 @@ export const DEFAULT_BOOKS = {
       "Unit 8: Graduation Day"
     ]
   },
+
   Netzwerk_neu_A1: {
     id: "18",
     name: "Netzwerk neu A1",
@@ -223,7 +224,7 @@ export const DEFAULT_BOOKS = {
     ]
   },
   Netzwerk_neu_A2: {
-    id: "18",
+    id: "19",
     name: "Netzwerk neu A2",
     units: [
       "Unidad 1: Und was machtst du?",
@@ -241,7 +242,7 @@ export const DEFAULT_BOOKS = {
     ]
   },
   Netzwerk_neu_B1: {
-    id: "18",
+    id: "20",
     name: "Netzwerk neu B1",
     units: [
       "Unidad 1: Gute Reise!",
@@ -257,6 +258,92 @@ export const DEFAULT_BOOKS = {
       "Unidad 11: Stadt, Land, Fluss",
       "Unidad 12: Geld regiert die Welt?"
     ]
-  }
+  },
+  Empower_A1: {
+    id: "21",
+    name: "Empower A1",
+    units: [
+      "Unit 1: Hello!",
+      "Unit 2: All about me",
+      "Unit 3: Food and drink",
+      "Unit 4: My life and my Family",
+      "Unit 5: Places",
+      "Unit 6: Work and routines",
+      "Unit 7: Shopping and fashion",
+      "Unit 8: Past events",
+      "Unit 9: Holidays",
+      "Unit 10: Here and now",
+      "Unit 11: Achievers",
+      "Unit 12: Plans"
+    ]
+  },
+  Empower_A2: {
+    id: "22",
+    name: "Empower A2",
+    units: [
+      "Unit 1: People",
+      "Unit 2: Work and study",
+      "Unit 3: Daily life",
+      "Unit 4: Food",
+      "Unit 5: Places",
+      "Unit 6: Family",
+      "Unit 7: Trips",
+      "Unit 8: Fit and healthy",
+      "Unit 9: Clothes and shopping",
+      "Unit 10: Communication",
+      "Unit 11: Entertainment",
+      "Unit 12: Travel"
+    ]
+  },
+  Empower_B1: {
+    id: "23",
+    name: "Empower B1",
+    units: [
+      "Unit 1: Communicating",
+      "Unit 2: Travel and Tourism",
+      "Unit 3: Money",
+      "Unit 4: Social life",
+      "Unit 5: Work",
+      "Unit 6: Problems and advice",
+      "Unit 7: Changes",
+      "Unit 8: Culture",
+      "Unit 9: Achievements",
+      "Unit 10: Values",
+      "Unit 11: Discovery and Invention",
+      "Unit 12: Characters"
+    ]
+  },
+  Empower_B2: {
+    id: "24",
+    name: "Empower B2",
+    units: [
+      "Unit 1: Outstanding people",
+      "Unit 2: Survival",
+      "Unit 3: Talent",
+      "Unit 4: Life Lessons",
+      "Unit 5: Chance",
+      "Unit 6: Around the globe",
+      "Unit 7: City living",
+      "Unit 8: Dilenmas",
+      "Unit 9: Discoveries",
+      "Unit 10: Possibilities"
+    ]
+  },
+  Compact_First_Third_Edition: {
+    id: "25",
+    name: "Compact First Third Edition",
+    units: [
+      "Unit 1: Linving day to day",
+      "Unit 2: Differing tastes",
+      "Unit 3: Changing places",
+      "Unit 4: Getting creative",
+      "Unit 5: Making your way",
+      "Unit 6: Setting the pace",
+      "Unit 7: Feeling the heat",
+      "Unit 8: Moving ahead",
+      "Unit 9: Breaking news",
+      "Unit 10: Shopping around",
+    ]
+  },
 } as const;
 export type BookId = keyof typeof DEFAULT_BOOKS;
