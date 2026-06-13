@@ -27,7 +27,20 @@ export const DEFAULT_BOOKS = {
   american_english_3: {
     id: "3",
     name: "American English 3",
-    units: AMERICAN_UNITS
+    units: [
+      "Unit 1A", "Unit 1B",
+      "Unit 2A", "Unit 2B", 
+      "Unit 3A", "Unit 3B",
+      "Unit 4A", "Unit 4B",
+      "Unit 5A", "Unit 5B",
+      "Unit 6A", "Unit 6B",
+      "Unit 7A", "Unit 7B",
+      "Unit 8A", "Unit 8B",
+      "Unit 9A", "Unit 9B",
+      "Unit 10A", "Unit 10B",
+      "Unit 11A", "Unit 11B",
+      "Unit 12A", "Unit 12B",
+    ]
   },
   american_english_4: {
     id: "4",
