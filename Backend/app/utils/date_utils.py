@@ -123,3 +123,38 @@ def fix_speaking_hours_column(df):
     df.loc[:, "SPEAKING HOURS"] = df["SPEAKING HOURS"].apply(fix_value)
 
     return df
+
+def extract_year_from_sheet(excel_sheet, sheet_name):
+    """
+    Try to extract the year from a cell containing 'HOURS [TEACHER NAME] month year'
+    Returns the year as string or None if not found
+    """
+    try:
+        # Read the first few rows to find the HOURS cell
+        df = pd.read_excel(excel_sheet, sheet_name=sheet_name, header=None, nrows=10)
+        
+        # Search through the first 10 rows and first 10 columns for the pattern
+        for i in range(min(10, len(df))):
+            for j in range(min(10, len(df.columns))):
+                cell_value = str(df.iloc[i, j]).strip()
+                
+                # Look for "HOURS" pattern (case insensitive)
+                if "HOURS" in cell_value.upper():
+                    # Use regex to find a 4-digit year in the cell
+                    year_match = re.search(r'\b(20\d{2})\b', cell_value)
+                    if year_match:
+                        year = year_match.group(1)
+                        print(f"Found year '{year}' in cell: '{cell_value}'")
+                        return year
+                    
+                    # Also try to find any 4-digit number that could be a year
+                    year_match = re.search(r'\b(\d{4})\b', cell_value)
+                    if year_match:
+                        year = year_match.group(1)
+                        print(f"Found year '{year}' in cell: '{cell_value}'")
+                        return year
+                        
+        return None
+    except Exception as e:
+        print(f"Error extracting year from sheet '{sheet_name}': {e}")
+        return None

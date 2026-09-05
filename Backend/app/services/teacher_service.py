@@ -1,7 +1,7 @@
 
 from datetime import datetime
 
-from app.utils.date_utils import fix_speaking_hours_column, get_current_month_name, split_speaking_dates
+from app.utils.date_utils import extract_year_from_sheet, fix_speaking_hours_column, get_current_month_name, split_speaking_dates
 from app.repositories.excel_repository import get_excel_file
 from app.utils.name_utils import extract_teacher_name
 import pandas as pd
@@ -27,15 +27,56 @@ def find_teacher_sheets(teacher_name: str, excel):
     current_month = get_current_month_name()
     current_year = str(datetime.now().year)
 
-    aliases = TEACHER_ALIASES.get(teacher_name.upper(), [teacher_name.upper()])
+    # Get aliases for the teacher
+    teacher_upper = teacher_name.upper()
+    aliases = TEACHER_ALIASES.get(
+        teacher_upper,
+        [teacher_upper]
+    )
 
-    return [
-        sheet for sheet in excel.sheet_names
-        if current_month in sheet.upper()
-        and current_year in sheet.upper()
-        and any(alias in sheet.upper() for alias in aliases)
-    ]
+    # Also add partial matches
+    all_aliases = set(aliases)
 
+    for alias in aliases:
+        if len(alias) >= 3:
+            all_aliases.add(alias[:len(alias) - 1])
+            all_aliases.add(alias[:len(alias) - 2])
+
+    matching_sheets = []
+
+    for sheet in excel.sheet_names:
+        sheet_upper = sheet.upper()
+
+        # Check month
+        month_matches = current_month in sheet_upper
+
+        # Check year
+        year_in_sheet = current_year in sheet_upper
+
+        # Check teacher name
+        teacher_matches = any(
+            alias in sheet_upper
+            for alias in all_aliases
+        )
+
+        # If month and teacher match
+        if month_matches and teacher_matches:
+
+            # Year is in sheet name
+            if year_in_sheet:
+                matching_sheets.append(sheet)
+
+            # Year is not in sheet name
+            else:
+                year_from_doc = extract_year_from_sheet(
+                    excel,
+                    sheet
+                )
+
+                if year_from_doc == current_year:
+                    matching_sheets.append(sheet)
+
+    return matching_sheets
 
 def load_teacher_data(teacher_name: str):
     sheets = find_teacher_sheets(teacher_name)
