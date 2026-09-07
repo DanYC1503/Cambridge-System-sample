@@ -1,6 +1,7 @@
 from datetime import datetime
 import pandas as pd
 import re
+
 MONTHS_ES = {
     1: "ENERO",
     2: "FEBRERO",
@@ -84,26 +85,15 @@ def fix_speaking_hours_column(df):
             return None
 
         val_str = str(val).strip()
+        val_str = val_str.replace("–", "-").replace("—", "-")
 
-        # normalize dashes
-        val_str = val_str.replace("\u2013", "-").replace("\u2014", "-")
-
-        # -------------------------
-        # CASE 1: already correct
-        # -------------------------
         if re.match(r"^\d{1,2}:\d{2}-\d{1,2}:\d{2}$", val_str):
             return val_str
 
-        # -------------------------
-        # CASE 2: simple "5-6"
-        # -------------------------
         if re.match(r"^\d{1,2}-\d{1,2}$", val_str):
             start, end = val_str.split("-")
             return f"{int(start)}:00-{int(end)}:00"
 
-        # -------------------------
-        # CASE 3: Excel-corrupted datetime
-        # -------------------------
         if "00:00:00" in val_str:
             dt = pd.to_datetime(val_str, errors="coerce")
 
@@ -111,16 +101,16 @@ def fix_speaking_hours_column(df):
                 start = dt.day
                 end = dt.month
 
-                # sanity check (avoid weird dates)
                 if 1 <= start <= 12 and 1 <= end <= 12:
                     return f"{start}:00-{end}:00"
 
-        # -------------------------
-        # fallback
-        # -------------------------
         return val_str
 
-    df.loc[:, "SPEAKING HOURS"] = df["SPEAKING HOURS"].apply(fix_value)
+    # Convert first so None is allowed
+    df["SPEAKING HOURS"] = df["SPEAKING HOURS"].astype(object)
+
+    # Then clean the values
+    df["SPEAKING HOURS"] = df["SPEAKING HOURS"].apply(fix_value)
 
     return df
 

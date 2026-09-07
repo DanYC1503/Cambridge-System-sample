@@ -7,21 +7,42 @@ def get_current_month_sheets(excel_sheet):
     current_year = str(datetime.now().year)
 
     matching_sheets = []
+    
+    # Also check for English month names
+    english_months = {
+        "ENERO": "JANUARY",
+        "FEBRERO": "FEBRUARY", 
+        "MARZO": "MARCH",
+        "ABRIL": "APRIL",
+        "MAYO": "MAY",
+        "JUNIO": "JUNE",
+        "JULIO": "JULY",
+        "AGOSTO": "AUGUST",
+        "SEPTIEMBRE": "SEPTEMBER",
+        "OCTUBRE": "OCTOBER",
+        "NOVIEMBRE": "NOVEMBER",
+        "DICIEMBRE": "DECEMBER"
+    }
+    
+    english_month = english_months.get(current_month.upper(), current_month.upper())
 
     for sheet in excel_sheet.sheet_names:
-        # Check if month is in sheet name
-        month_in_sheet = current_month in sheet.upper()
-
+        sheet_upper = sheet.upper()
+        
+        # Check if month is in sheet name (Spanish or English)
+        month_in_sheet = current_month.upper() in sheet_upper
+        month_in_sheet_english = english_month in sheet_upper
+        
         # Check if year is in sheet name
         year_in_sheet = current_year in sheet
 
         # If both are present, it's a match
-        if month_in_sheet and year_in_sheet:
+        if (month_in_sheet or month_in_sheet_english) and year_in_sheet:
             matching_sheets.append(sheet)
             continue
 
         # If month is present but year isn't, try to find year in document
-        if month_in_sheet and not year_in_sheet:
+        if (month_in_sheet or month_in_sheet_english) and not year_in_sheet:
             year_from_doc = extract_year_from_sheet(
                 excel_sheet,
                 sheet
@@ -29,5 +50,5 @@ def get_current_month_sheets(excel_sheet):
 
             if year_from_doc == current_year:
                 matching_sheets.append(sheet)
-
+    
     return matching_sheets

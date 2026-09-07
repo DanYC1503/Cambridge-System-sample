@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+from app.exceptions.app_exceptions import AppException
 from app.controller.download_controller import download_sheet
 from app.model.form_model import FormInput
 from app.services.form_service import get_form_via_link, submit_form_service
@@ -31,3 +33,18 @@ def submit_form(data: FormInput, form_url: str):
         return {"status": "ok"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@app.exception_handler(AppException)
+async def app_exception_handler(
+    request: Request,
+    exc: AppException
+):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "error": exc.message
+        }
+    )

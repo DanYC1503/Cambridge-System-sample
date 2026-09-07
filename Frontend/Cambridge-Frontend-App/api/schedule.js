@@ -3,15 +3,22 @@ import { API_URL } from "../config";
 export const fetchSchedule = async (teacherName) => {
   try {
     const response = await fetch(
-      `${API_URL}/download-speaking-sheet?course_teacher_name=${teacherName}`
+      `${API_URL}/download-speaking-sheet?course_teacher_name=${encodeURIComponent(teacherName)}`
     );
 
     console.log("STATUS:", response.status);
 
-    const text = await response.text();
-    console.log("RAW RESPONSE:", text);
+    const data = await response.json();
 
-    return JSON.parse(text);
+    console.log("RESPONSE:", data);
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Failed to retrieve speaking schedule."
+      );
+    }
+
+    return data.df;
   } catch (err) {
     console.error("FETCH ERROR:", err);
     throw err;

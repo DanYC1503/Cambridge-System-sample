@@ -25,7 +25,7 @@ const Home = () => {
   
 
   const searchSchedule = async () => {
-    if (loading) return; 
+    if (loading) return;
 
     if (!teacherName.trim()) {
       Alert.alert("Error", "Please enter a teacher name.");
@@ -36,12 +36,16 @@ const Home = () => {
 
     try {
       const data = await fetchSchedule(teacherName);
+
       console.log(data);
 
-      setSchedule(data.df);
-      saveSchedule(data.df);
+      setSchedule(data);
+      await saveSchedule(data);
 
-      Alert.alert("Schedule fetched!", `Found ${data.df.length} entries.`);
+      Alert.alert(
+        "Schedule fetched!",
+        `Found ${data.length} entries.`
+      );
     } catch (err: unknown) {
       if (err instanceof Error) {
         Alert.alert("Error", err.message);
