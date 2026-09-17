@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "storage/course_Book_storage.js"  ]
+, "storage/course_Book_storage.js", "api/auth.js"  ]
 }

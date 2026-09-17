@@ -6,7 +6,10 @@ export const fetchSchema = async (url) => {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch schema");
+    const errorText = await response.text();
+    console.log("Schema error:", errorText);
+
+    throw new Error("Failed to retrieve form schema");
   }
 
   return response.json();

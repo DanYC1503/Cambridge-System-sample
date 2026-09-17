@@ -62,17 +62,6 @@ export default function FormScreen() {
     }
     return "";
   };
-  const buildInitialFields = (defaultValue: string) => {
-    const result: { [key: string]: string } = {};
-
-    Object.keys(schema.fields).forEach((field) => {
-      const suggested = getSuggestedValue(field);
-
-      result[field] = suggested || defaultValue;
-    });
-
-    return result;
-  };
   useEffect(() => {
     const loadSchema = async () => {
       try {
